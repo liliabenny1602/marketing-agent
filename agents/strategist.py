@@ -1,23 +1,32 @@
-from langchain_community.chat_models import ChatOllama
+from langchain_ollama import ChatOllama
 
-llm = ChatOllama(model="llama3", temperature=0)
+llm = ChatOllama(model="phi3", temperature=0)
+
 
 def strategist_agent(state):
-    analysis = state["analysis"]
+
+    tracer = state.get("tracer")
+    if tracer:
+        tracer.node_start("Strategist")
+
+    analysis = state.get("analysis", "")
     memories = state.get("memories", [])
 
     prompt = f"""
 You are a senior marketing strategist.
 
-Current Analysis:
+Analysis:
 {analysis}
 
-Relevant Past Campaign Learnings:
+Relevant Past Learnings:
 {memories}
 
-Using both, produce a precise optimization strategy.
+Produce a clear optimization strategy.
 """
 
     result = llm.invoke(prompt).content
+
+    if tracer:
+        tracer.node_end("Strategist")
 
     return {"strategy": result}

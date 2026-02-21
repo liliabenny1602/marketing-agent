@@ -2,37 +2,33 @@ from memory.vector_store import similarity_search, mmr_search
 
 
 def _choose_query(state):
-    """
-    Determines best retrieval query from available state.
-    Priority order ensures robustness.
-    """     
 
-    if "analysis" in state and state["analysis"]:
+    if state.get("analysis"):
         return state["analysis"]
 
-    if "metrics" in state:
+    if state.get("metrics"):
         return str(state["metrics"])
 
-    return "marketing campaign performance optimization"
+    return "marketing campaign optimization"
 
 
 def memory_agent(state):
-    """
-    Retrieves relevant past campaign knowledge
-    and injects it into agent reasoning state.
-    """
+
+    tracer = state.get("tracer")
+    if tracer:
+        tracer.node_start("Memory")
 
     query = _choose_query(state)
 
     try:
-        # try diversity-aware retrieval first
         memories = mmr_search(query, k=3)
-
         if not memories:
             memories = similarity_search(query, k=3)
-
     except Exception as e:
-        memories = [f"[Memory retrieval failed: {str(e)}]"]
+        memories = [f"Memory retrieval error: {str(e)}"]
+
+    if tracer:
+        tracer.node_end("Memory")
 
     return {
         "memories": memories,

@@ -4,6 +4,8 @@ openai
 faiss-cpu
 tiktoken
 python-dotenv
-langchain
+langchain-community
 graphviz
+langchain-ollama
 sentence-transformers
+streamlit

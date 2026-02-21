@@ -1,34 +1,46 @@
+from langchain_ollama import ChatOllama
 from tools.ads_api import update_budget
-from langchain_community.chat_models import ChatOllama
 
-llm = ChatOllama(
-    model="llama3",
-    temperature=0
-)
+llm = ChatOllama(model="phi3", temperature=0)
+
 
 def optimizer_agent(state):
-    metrics = state["metrics"]
-    strategy = state["strategy"]
+
+    tracer = state.get("tracer")
+    if tracer:
+        tracer.node_start("Optimizer")
+
+    metrics = state.get("metrics", {})
+    strategy = state.get("strategy", "")
 
     prompt = f"""
-    You are a campaign optimizer.
+You are a campaign optimizer.
 
-    Metrics: {metrics}
-    Strategy: {strategy}
+Metrics:
+{metrics}
 
-    Output JSON:
-    {{
-        "action": "...",
-        "percent": number
-    }}
-    """
+Strategy:
+{strategy}
+
+Output JSON:
+{{
+ "action": "...",
+ "percent": number
+}}
+"""
 
     decision = llm.invoke(prompt).content
 
-    # rule safety layer
-    if metrics["roas"] < 1.5:
-        result = update_budget(metrics["campaign"], 20)
+    # deterministic rule layer
+    if metrics.get("roas", 0) < 1.5:
+        execution = update_budget(metrics.get("campaign", "Campaign"), 20)
     else:
-        result = "No change required"
+        execution = "No change required"
 
-    return {"decision": decision, "execution": result}
+    if tracer:
+        tracer.node_end("Optimizer")
+
+    return {
+        "decision": decision,
+        "execution": execution
+    }

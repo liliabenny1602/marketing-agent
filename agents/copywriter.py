@@ -1,22 +1,28 @@
-from langchain_community.chat_models import ChatOllama
+from langchain_ollama import ChatOllama
 
-llm = ChatOllama(
-    model="llama3",
-    temperature=0
-)
+llm = ChatOllama(model="phi3", temperature=0.7)
+
 
 def copywriter_agent(state):
-    strategy = state["strategy"]
+
+    tracer = state.get("tracer")
+    if tracer:
+        tracer.node_start("Copywriter")
+
+    strategy = state.get("strategy", "")
 
     prompt = f"""
-    You are an ad copywriter.
+You are an ad copywriter.
 
-    Strategy:
-    {strategy}
+Strategy:
+{strategy}
 
-    Generate 3 ad variations.
-    """
+Generate 3 ad variants.
+"""
 
     result = llm.invoke(prompt).content
+
+    if tracer:
+        tracer.node_end("Copywriter")
 
     return {"copy": result}

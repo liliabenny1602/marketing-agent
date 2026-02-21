@@ -1,0 +1,18 @@
+// Agent Workflow
+digraph {
+	rankdir=LR size="8,5"
+	__start__
+	analyst
+	memory
+	strategist
+	copywriter
+	optimizer
+	__end__
+	__start__ -> analyst
+	analyst -> memory
+	memory -> strategist
+	strategist -> copywriter
+	strategist -> optimizer
+	copywriter -> __end__
+	optimizer -> __end__
+}
